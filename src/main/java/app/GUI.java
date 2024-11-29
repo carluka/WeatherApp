@@ -2,6 +2,7 @@ package app;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.*;
 
 public class GUI extends JFrame{
     private JTextField vnosnoPolje;
@@ -22,5 +23,11 @@ public class GUI extends JFrame{
 
         setLayout(new BorderLayout());
         add(inputPanel, BorderLayout.NORTH);
+        gumbIskanje.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                MeteoAPI.pridobiVremenskoNapoved(vnosnoPolje.getText());
+            }
+        });
     }
 }
