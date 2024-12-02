@@ -5,7 +5,9 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.*;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -28,7 +30,8 @@ public class MeteoAPI {
     }
 
     private static String[] pridobiKoordinate(String mesto) {
-        String url = BASE_URL + "?q=" + mesto + "&format=json&limit=1";
+        String urlEncoded = URLEncoder.encode(mesto, StandardCharsets.UTF_8);
+        String url = BASE_URL + "?q=" + urlEncoded + "&format=json&limit=1";
         HttpResponse<String> response = pokliciAPI(url);
 
         JSONArray jsonArray = new JSONArray(response.body());
@@ -43,8 +46,12 @@ public class MeteoAPI {
         }
     }
 
-    public static List<List<?>> pridobiVremenskoNapoved(String mesto){
+    public static VremenskaNapoved pridobiVremenskoNapoved(String mesto){
         String[] koordinate = pridobiKoordinate(mesto);
+        return pridobiVremenskoNapoved(koordinate);
+    }
+
+    public static VremenskaNapoved pridobiVremenskoNapoved(String[] koordinate){
         if(koordinate != null){
             String url = URL + "?latitude=" + koordinate[0] + "&longitude=" + koordinate[1] + "&current=temperature_2m,weather_code&hourly=temperature_2m";
 
@@ -61,10 +68,10 @@ public class MeteoAPI {
             List<Double> temperature = new ArrayList<>();
 
             SimpleDateFormat zacetniFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
-            SimpleDateFormat koncniFormat = new SimpleDateFormat("EEE HH:mm", new Locale("sl", "SI"));
+            SimpleDateFormat koncniFormat = new SimpleDateFormat("EEE HH:mm", Locale.of("sl", "SI"));
 
             for(int i = 0; i < timeResponse.length(); i++){
-                Date datum = null;
+                Date datum;
                 try {
                     datum = zacetniFormat.parse(timeResponse.getString(i));
                 } catch (ParseException e) {
@@ -74,10 +81,7 @@ public class MeteoAPI {
                 time.add(novDatum);
                 temperature.add(temperatureResponse.getDouble(i));
             }
-            List<List<?>> skupaj = new ArrayList<>();
-            skupaj.add(time);
-            skupaj.add(temperature);
-            return skupaj;
+            return new VremenskaNapoved(time, temperature, current.optString("weather_code"), current.optString("temperature_2m"));
         }
         return null;
     }
