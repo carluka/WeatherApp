@@ -14,11 +14,8 @@ public class GeolocationAPI {
 
     public static JSONObject pridobiLokacijoGledeNaIP() {
         try {
-            InetAddress localHost = InetAddress.getLocalHost();
-            String url = BASE_URL + localHost.getHostAddress() + "?output=json&fields=success,city,latitude,longitude";
-
             HttpClient client = HttpClient.newHttpClient();
-            HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
+            HttpRequest request = HttpRequest.newBuilder().uri(URI.create(BASE_URL)).GET().build();
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
