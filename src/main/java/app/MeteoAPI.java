@@ -53,13 +53,14 @@ public class MeteoAPI {
 
     public static VremenskaNapoved pridobiVremenskoNapoved(String[] koordinate){
         if(koordinate != null){
-            String url = URL + "?latitude=" + koordinate[0] + "&longitude=" + koordinate[1] + "&current=temperature_2m,weather_code&hourly=temperature_2m";
+            String url = URL + "?latitude=" + koordinate[0] + "&longitude=" + koordinate[1] + "&current=temperature_2m,weather_code&hourly=temperature_2m&daily=weather_code,temperature_2m_max,temperature_2m_min";
 
             HttpResponse<String> response = pokliciAPI(url);
             JSONObject jsonResponse = new JSONObject(response.body());
 
             JSONObject hourly = jsonResponse.getJSONObject("hourly");
             JSONObject current = jsonResponse.getJSONObject("current");
+            JSONObject daily = jsonResponse.getJSONObject("daily");
 
             JSONArray timeResponse = hourly.getJSONArray("time");
             JSONArray temperatureResponse = hourly.getJSONArray("temperature_2m");
@@ -81,7 +82,18 @@ public class MeteoAPI {
                 time.add(novDatum);
                 temperature.add(temperatureResponse.getDouble(i));
             }
-            return new VremenskaNapoved(time, temperature, current.optString("weather_code"), current.optString("temperature_2m"));
+
+            List<String> vremenskeKodeDnevno = new ArrayList<>();
+            List<Double> temperature_min = new ArrayList<>();
+            List<Double> temperature_max = new ArrayList<>();
+
+            for(int i = 0; i < daily.getJSONArray("time").length(); i++){
+                vremenskeKodeDnevno.add(daily.getJSONArray("weather_code").optString(i));
+                temperature_min.add(daily.getJSONArray("temperature_2m_min").getDouble(i));
+                temperature_max.add(daily.getJSONArray("temperature_2m_max").getDouble(i));
+            }
+
+            return new VremenskaNapoved(time, temperature_min, temperature_max, vremenskeKodeDnevno, current.optString("temperature_2m"), current.optString("weather_code"), temperature);
         }
         return null;
     }
